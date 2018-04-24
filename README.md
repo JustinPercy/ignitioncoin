@@ -1,3 +1,6 @@
+# please don't build and test it on MainNet.
+
+
 Ignition Release Tree
 
 Ignition is a POW/PoS-based cryptocurrency.
