@@ -195,7 +195,7 @@ void SelectParams(CChainParams::Network network) {
 
 bool SelectParamsFromCommandLine() {
 
-	fTestNet = GetBoolArg("-testnet", false);
+	bool fTestNet = GetBoolArg("-testnet", false);
 
 	if (fTestNet) {
 		SelectParams(CChainParams::TESTNET);

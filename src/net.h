@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #ifndef BITCOIN_NET_H
@@ -37,6 +38,79 @@ class CNode;
 namespace boost {
     class thread_group;
 }
+
+// *** Firewall Controls (General) ***
+extern bool FIREWALL_ENABLED;
+extern bool FIREWALL_LIVE_DEBUG;
+extern bool FIREWALL_CLEAR_BLACKLIST;
+extern bool FIREWALL_CLEAR_BANS;
+
+// *** Firewall Controls (General) ***
+extern bool FIREWALL_LIVEDEBUG_EXAM;
+extern bool FIREWALL_LIVEDEBUG_BANS;
+extern bool FIREWALL_LIVEDEBUG_BLACKLIST;
+extern bool FIREWALL_LIVEDEBUG_DISCONNECT;
+extern bool FIREWALL_LIVEDEBUG_BANDWIDTHABUSE;
+extern bool FIREWALL_LIVEDEBUG_NOFALSEPOSITIVE;
+extern bool FIREWALL_LIVEDEBUG_INVALIDWALLET;
+extern bool FIREWALL_LIVEDEBUG_FORKEDWALLET;
+extern bool FIREWALL_LIVEDEBUG_FLOODINGWALLET;
+
+// *** Firewall Controls (Bandwidth Abuse) ***
+extern bool FIREWALL_DETECT_BANDWIDTHABUSE;
+extern bool FIREWALL_BLACKLIST_BANDWIDTHABUSE;
+extern bool FIREWALL_BAN_BANDWIDTHABUSE;
+extern bool FIREWALL_NOFALSEPOSITIVE_BANDWIDTHABUSE;
+
+// *** Firewall Controls (Invalid Peer Wallets) ***
+extern bool FIREWALL_DETECT_INVALIDWALLET;
+extern bool FIREWALL_BLACKLIST_INVALIDWALLET;
+extern bool FIREWALL_BAN_INVALIDWALLET;
+
+// *** Firewall Controls (Forked Peer Wallets) ***
+extern bool FIREWALL_DETECT_FORKEDWALLET;
+extern bool FIREWALL_BLACKLIST_FORKEDWALLET;
+extern bool FIREWALL_BAN_FORKEDWALLET;
+
+// *** Firewall Controls (Flooding Peer Wallets) ***
+extern bool FIREWALL_DETECT_FLOODINGWALLET;
+extern bool FIREWALL_BLACKLIST_FLOODINGWALLET;
+extern bool FIREWALL_BAN_FLOODINGWALLET;
+
+// * Firewall Settings (Exam) *
+extern int FIREWALL_AVERAGE_TOLERANCE;
+extern int FIREWALL_AVERAGE_RANGE;
+extern double FIREWALL_TRAFFIC_TOLERANCE;
+extern double FIREWALL_TRAFFIC_ZONE;
+extern string FIREWALL_WHITELIST[];
+extern string FIREWALL_BLACKLIST[];
+
+// * Firewall Settings (Bandwidth Abuse) *
+extern int FIREWALL_BANTIME_BANDWIDTHABUSE;
+extern int FIREWALL_BANDWIDTHABUSE_MAXCHECK;
+extern double FIREWALL_BANDWIDTHABUSE_MINATTACK;
+extern double FIREWALL_BANDWIDTHABUSE_MAXATTACK;
+extern int FIREWALL_BANTIME_BANDWIDTHABUSE;
+
+// * Firewall Settings (Invalid Wallet)
+extern int FIREWALL_MINIMUM_PROTOCOL;
+extern int FIREWALL_BANTIME_INVALIDWALLET;
+extern int FIREWALL_INVALIDWALLET_MAXCHECK;
+extern int FIREWALL_BANTIME_INVALIDWALLET;
+
+// * Firewall Settings (Forked Wallet)
+extern int FIREWALL_BANTIME_FORKEDWALLET;
+extern int FIREWALL_FORKED_NODEHEIGHT[];
+
+// * Firewall Settings (Flooding Wallet)
+extern int FIREWALL_BANTIME_FLOODINGWALLET;
+extern int FIREWALL_FLOODINGWALLET_MINBYTES;
+extern int FIREWALL_FLOODINGWALLET_MAXBYTES;
+extern string FIREWALL_FLOODPATTERNS[];
+extern double FIREWALL_FLOODINGWALLET_MINTRAFFICAVERAGE;
+extern double FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE;
+extern int FIREWALL_FLOODINGWALLET_MINCHECK;
+extern int FIREWALL_FLOODINGWALLET_MAXCHECK;
 
 
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
@@ -229,7 +303,11 @@ typedef enum BanReason
 {
     BanReasonUnknown          = 0,
     BanReasonNodeMisbehaving  = 1,
-    BanReasonManuallyAdded    = 2
+    BanReasonManuallyAdded    = 2,
+    BanReasonBandwidthAbuse   = 3,
+    BanReasonInvalidWallet    = 4,
+    BanReasonForkedWallet     = 5,
+    BanReasonFloodingWallet   = 6
 } BanReason;
 
 class CBanEntry
@@ -273,9 +351,17 @@ public:
     {
         switch (banReason) {
         case BanReasonNodeMisbehaving:
-            return "node misbehabing";
+            return "node misbehaving";
         case BanReasonManuallyAdded:
             return "manually added";
+        case BanReasonBandwidthAbuse:
+            return "bandwidth abuse";
+        case BanReasonInvalidWallet:
+            return "invalid wallet";
+        case BanReasonForkedWallet:
+            return "forked wallet";
+        case BanReasonFloodingWallet:
+            return "flooding wallet";
         default:
             return "unknown";
         }
@@ -331,6 +417,12 @@ public:
     uint64_t nRecvBytes;
     int nRecvVersion;
 
+    // Firewall Data
+    double nTrafficAverage;
+    double nTrafficRatio;
+    int nTrafficTimestamp;
+    int nSyncHeight;
+    int nSyncHeightOld;
     int64_t nLastSend;
     int64_t nLastRecv;
     int64_t nLastSendEmpty;
@@ -442,6 +534,14 @@ public:
         nPingUsecTime = 0;
         fPingQueued = false;
 
+        // Firewall CNode Data
+        nTrafficAverage = 0;
+        nTrafficRatio = 0;
+        nTrafficTimestamp = 0;
+        nSyncHeight = 0;
+        nSyncHeightOld = 0;
+
+        // Node Lock
         {
             LOCK(cs_nLastNodeId);
             id = nLastNodeId++;
@@ -546,6 +646,13 @@ public:
         }
     }
 
+    int GetInventoryKnown(const CInv& inv)
+    {
+        {
+            LOCK(cs_inventory);
+            return setInventoryKnown.size();
+        }
+    }
     void PushInventory(const CInv& inv)
     {
         {

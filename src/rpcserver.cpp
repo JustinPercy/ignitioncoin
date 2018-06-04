@@ -1,5 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -251,6 +252,66 @@ static const CRPCCommand vRPCCommands[] =
     { "verifymessage",          &verifymessage,          false,     false,     false },
     { "searchrawtransactions",  &searchrawtransactions,  false,     false,     false },
 
+    /* Firewall General Session Settings */
+    { "firewallstatus",                                &firewallstatus,                             false,      false,    false },
+    { "firewallenabled",                               &firewallenabled,                             false,      false,    false },
+    { "firewallclearblacklist",                        &firewallclearblacklist,                      false,      false,    false },
+    { "firewallclearbanlist",                          &firewallclearbanlist,                        false,      false,    false },
+    { "firewalltraffictolerance",                      &firewalltraffictolerance,                    false,      false,    false },
+    { "firewalltrafficzone",                           &firewalltrafficzone,                         false,      false,    false },
+    { "firewalladdtowhitelist",                        &firewalladdtowhitelist,                      false,      false,    false },
+    { "firewalladdtoblacklist",                        &firewalladdtoblacklist,                      false,      false,    false },
+
+    /* Firewall Firewall Debug (Live Output) */
+    { "firewalldebug",                                 &firewalldebug,                               false,      false,    false },
+    { "firewalldebugexam",                             &firewalldebugexam,                           false,      false,    false },
+    { "firewalldebugbans",                             &firewallclearbanlist,                        false,      false,    false },
+    { "firewalldebugblacklist",                        &firewalldebugblacklist,                      false,      false,    false },
+    { "firewalldebugdisconnect",                       &firewalldebugdisconnect,                     false,      false,    false },
+    { "firewalldebugbandwidthabuse",                   &firewalldebugbandwidthabuse,                 false,      false,    false },
+    { "firewalldebugnofalsepositivebandwidthabuse",    &firewalldebugnofalsepositivebandwidthabuse,  false,      false,    false },
+    { "firewalldebuginvalidwallet",                    &firewalldebuginvalidwallet,                  false,      false,    false },
+    { "firewalldebugforkedwallet",                     &firewalldebugforkedwallet,                   false,      false,    false },
+    { "firewalldebugfloodingwallet",                   &firewalldebugfloodingwallet,                 false,      false,    false },
+
+    /* Firewall BandwidthAbuse Session Settings */
+    { "firewalldetectbandwidthabuse",                  &firewalldetectbandwidthabuse,                false,      false,    false },
+    { "firewallblacklistbandwidthabuse",               &firewallblacklistbandwidthabuse,             false,      false,    false },
+    { "firewallbanbandwidthabuse",                     &firewallbanbandwidthabuse,                   false,      false,    false },
+    { "firewallnofalsepositivebandwidthabuse",         &firewallnofalsepositivebandwidthabuse,       false,      false,    false },
+    { "firewallbantimebandwidthabuse",                 &firewallbantimebandwidthabuse,               false,      false,    false },
+    { "firewallbandwidthabusemaxcheck",                &firewallbandwidthabusemaxcheck,              false,      false,    false },
+    { "firewallbandwidthabuseminattack",               &firewallbandwidthabuseminattack,             false,      false,    false },
+    { "firewallbandwidthabuseminattack",               &firewallbandwidthabuseminattack,             false,      false,    false },
+
+    /* Firewall Invalid Wallet Session Settings */
+    { "firewalldetectinvalidwallet",                   &firewalldetectinvalidwallet,                 false,      false,    false },
+    { "firewallblacklistinvalidwallet",                &firewallblacklistinvalidwallet,              false,      false,    false },
+    { "firewallbaninvalidwallet",                      &firewallbaninvalidwallet,                    false,      false,    false },
+    { "firewallbantimeinvalidwallet",                  &firewallbantimeinvalidwallet,                false,      false,    false },
+    { "firewallinvalidwalletminprotocol",              &firewallinvalidwalletminprotocol,            false,      false,    false },
+    { "firewallinvalidwalletmaxcheck",                 &firewallinvalidwalletmaxcheck,               false,      false,    false },
+
+    /* Firewall Forked Wallet Session Settings */
+    { "firewalldetectforkedwallet",                    &firewalldetectforkedwallet,                  false,      false,    false },
+    { "firewallblacklistforkedwallet",                 &firewallblacklistforkedwallet,               false,      false,    false },
+    { "firewallbanforkedwallet",                       &firewallbanforkedwallet,                     false,      false,    false },
+    { "firewallbantimeforkedwallet",                   &firewallbantimeforkedwallet,                 false,      false,    false },
+    { "firewallforkedwalletnodeheight",                &firewallforkedwalletnodeheight,              false,      false,    false },
+
+    /* Firewall Flooding Wallet Session Settings */
+    { "firewalldetectfloodingwallet",                  &firewalldetectfloodingwallet,                false,      false,    false },
+    { "firewallblacklistfloodingwallet",               &firewallblacklistfloodingwallet,             false,      false,    false },
+    { "firewallbanfloodingwallet",                     &firewallbanfloodingwallet,                   false,      false,    false },
+    { "firewallbantimefloodingwallet",                 &firewallbantimefloodingwallet,               false,      false,    false },
+    { "firewallfloodingwalletminbytes",                &firewallfloodingwalletminbytes,              false,      false,    false },
+    { "firewallfloodingwalletmaxbytes",                &firewallfloodingwalletmaxbytes,              false,      false,    false },
+    { "firewallfloodingwalletattackpatternadd",        &firewallfloodingwalletattackpatternadd,      false,      false,    false },
+    { "firewallfloodingwalletattackpatternremove",     &firewallfloodingwalletattackpatternremove,   false,      false,    false },
+    { "firewallfloodingwalletmintrafficavg",           &firewallfloodingwalletmintrafficavg,         false,      false,    false },
+    { "firewallfloodingwalletmaxtrafficavg",           &firewallfloodingwalletmaxtrafficavg,         false,      false,    false },
+    { "firewallfloodingwalletmincheck",                &firewallfloodingwalletmincheck,              false,      false,    false },
+    { "firewallfloodingwalletmaxcheck",                &firewallfloodingwalletmaxcheck,              false,      false,    false },
 /* Dark features */
     { "spork",                  &spork,                  true,      false,      false },
     { "masternode",             &masternode,             true,      false,      true },
